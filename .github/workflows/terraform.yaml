@@ -46,7 +46,7 @@ jobs:
         run: |
           echo "Detecting changed environments..."
           CHANGED_ENVS=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^environments/' | cut -d '/' -f 2 | sort -u)
-          if [[ -z "$CHANGED_ENVS" ]]; then
+          if [ -z "$CHANGED_ENVS" ]; then
             echo "envs=[]" >> $GITHUB_OUTPUT
           else
             ENVS_JSON=$(echo "$CHANGED_ENVS" | jq -R -s -c 'split("\n") | map(select(length > 0))')
@@ -54,10 +54,10 @@ jobs:
           fi
 
       - name: Show detected environments
-        run: echo "Changed Environments: ${{ steps.set-matrix.outputs.envs }}"
+        run: echo "Detected: ${{ steps.set-matrix.outputs.envs }}"
 
   terraform-auto-plan:
-    name: Terraform Plan
+    name: Terraform Plan for ${{ matrix.env }}
     needs: detect-changes
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && needs.detect-changes.outputs.environments != '[]'
@@ -76,9 +76,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Show selected environment
-        run: echo "Running Terraform Plan for '${{ matrix.env }}' environment"
 
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -109,9 +106,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Show manual trigger details
-        run: echo "Action: ${{ github.event.inputs.action }} | Environment: ${{ github.event.inputs.environment }}"
-
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.7.5
@@ -124,8 +118,8 @@ jobs:
 
       - name: Terraform Apply or Destroy
         run: |
-          if [[ "${{ github.event.inputs.action }}" == "apply" ]]; then
+          if [ "${{ github.event.inputs.action }}" = "apply" ]; then
             terraform apply -auto-approve -var-file="terraform.tfvars"
-          elif [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
+          elif [ "${{ github.event.inputs.action }}" = "destroy" ]; then
             terraform destroy -auto-approve -var-file="terraform.tfvars"
           fi
