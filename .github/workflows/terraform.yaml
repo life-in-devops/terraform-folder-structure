@@ -8,7 +8,7 @@ on:
       - 'environments/**'
       - 'modules/**'
       - 'backend/**'
-      - '.github/workflows/terraform.yml'
+      - '.github/workflows/terraform.yaml'
 
   workflow_dispatch:
     inputs:
