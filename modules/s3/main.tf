@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "this" {
-  bucket = "${var.env}-terraform-s3-bucket"
+  bucket = "${var.env}-s3-bucket-for-terraform-poc"
 
   tags = {
     Environment = var.env
