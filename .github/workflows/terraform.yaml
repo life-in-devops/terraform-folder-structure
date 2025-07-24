@@ -8,7 +8,7 @@ on:
       - 'environments/**'
       - 'modules/**'
       - 'backend/**'
-      - '.github/workflows/terraform.yml'
+      - '.github/workflows/terraform.yaml'
 
   workflow_dispatch:
     inputs:
@@ -57,10 +57,10 @@ jobs:
         run: echo "Changed Environments: ${{ steps.set-matrix.outputs.envs }}"
 
   terraform-auto-plan:
-    name: Terraform Plan (${{ matrix.env }})
+    name: Terraform Plan
     needs: detect-changes
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && needs.detect-changes.outputs.environments != '[]'
 
     strategy:
       matrix:
