@@ -60,7 +60,9 @@ jobs:
     name: Terraform Plan for ${{ matrix.env }}
     needs: detect-changes
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && needs.detect-changes.outputs.environments != '[]'
+    if: >
+      github.event_name == 'push' &&
+      needs.detect-changes.outputs.environments != '[]'
 
     strategy:
       matrix:
