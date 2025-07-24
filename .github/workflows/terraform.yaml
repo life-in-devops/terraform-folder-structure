@@ -8,7 +8,7 @@ on:
       - 'environments/**'
       - 'modules/**'
       - 'backend/**'
-      - '.github/workflows/terraform.yaml'
+      - '.github/workflows/terraform.yml'
 
   workflow_dispatch:
     inputs:
@@ -44,26 +44,13 @@ jobs:
       - name: Get list of changed environments
         id: set-matrix
         run: |
-          echo "Detecting changed environments..."
-          CHANGED_ENVS=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^environments/' | cut -d '/' -f 2 | sort -u)
-          if [ -z "$CHANGED_ENVS" ]; then
-            echo "envs=[]" >> $GITHUB_OUTPUT
-          else
-            ENVS_JSON=$(echo "$CHANGED_ENVS" | jq -R -s -c 'split("\n") | map(select(length > 0))')
-            echo "envs=$ENVS_JSON" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Show detected environments
-        run: echo "Detected: ${{ steps.set-matrix.outputs.envs }}"
-
+          CHANGED_ENVS=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^environments/' | cut -d '/' -f 2 | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "envs=$CHANGED_ENVS" >> $GITHUB_OUTPUT
   terraform-auto-plan:
-    name: Terraform Plan for ${{ matrix.env }}
+    name: Terraform Plan (${{ matrix.env }})
     needs: detect-changes
+    if: github.event_name == 'push' && needs.detect-changes.outputs.environments != '[]'
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'push' &&
-      needs.detect-changes.outputs.environments != '[]'
-
     strategy:
       matrix:
         env: ${{ fromJson(needs.detect-changes.outputs.environments) }}
@@ -96,7 +83,6 @@ jobs:
     name: Manual ${{ github.event.inputs.action }} (${{ github.event.inputs.environment }})
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: environments/${{ github.event.inputs.environment }}
@@ -120,8 +106,8 @@ jobs:
 
       - name: Terraform Apply or Destroy
         run: |
-          if [ "${{ github.event.inputs.action }}" = "apply" ]; then
+          if [[ "${{ github.event.inputs.action }}" == "apply" ]]; then
             terraform apply -auto-approve -var-file="terraform.tfvars"
-          elif [ "${{ github.event.inputs.action }}" = "destroy" ]; then
+          elif [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
             terraform destroy -auto-approve -var-file="terraform.tfvars"
           fi
