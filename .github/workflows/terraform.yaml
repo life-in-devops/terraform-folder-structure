@@ -1,4 +1,4 @@
-name: Terraform Plan, Apply & Destroy
+name: Terraform Deployment ( Plan, Apply & Destroy )
 
 on:
   push:
